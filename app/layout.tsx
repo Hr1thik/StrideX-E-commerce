@@ -3,6 +3,7 @@ import { manrope, cormorant } from "@/lib/fonts";
 import "./globals.css";
 import { Toaster } from "sonner";
 import Script from "next/script";
+import ChatWidget from "@/component/chat/ChatWidget";
 
 export const metadata: Metadata = {
   title: "StrideX | Move Different",
@@ -21,6 +22,7 @@ export default function RootLayout({
         className={`${cormorant.variable} ${manrope.variable} antialiased`}
       >
         {children}
+        <ChatWidget />
         <Toaster
           position="top-center"
           toastOptions={{

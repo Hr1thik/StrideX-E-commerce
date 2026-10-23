@@ -24,6 +24,10 @@ const NAV_LINKS = [
 
 const SCROLL_THRESHOLD = 80;
 
+// Mobile drawer-ile small links-inu common style
+const DRAWER_LINK =
+  "eyebrow text-(--color-ivory) transition-colors duration-300 hover:text-(--color-champagne)";
+
 type UserData = {
   userId: string;
   email: string;
@@ -133,7 +137,7 @@ export default function Navbar({ cartCount = 0 }: { cartCount?: number }) {
       <header
         className={`fixed inset-x-0 top-0 z-50 border-b transition-all duration-500 ${
           isScrolled
-            ? "border-(--color-stone-light) bg-ivory/95 backdrop-blur-sm"
+            ? "border-(--color-stone-light) bg-(--color-ivory)/95 backdrop-blur-sm"
             : "border-transparent bg-(--color-ivory)"
         }`}
       >
@@ -194,7 +198,8 @@ export default function Navbar({ cartCount = 0 }: { cartCount?: number }) {
                       <UserIcon size={19} strokeWidth={1.5} />
                       <span className="eyebrow">Account</span>
                     </Link>
-                    {/* my orders */}
+
+                    {/* MY ORDERS */}
                     <Link
                       href="/orders"
                       className="hidden items-center gap-2 text-(--color-ink) transition-colors duration-300 hover:text-(--color-champagne) lg:inline-flex"
@@ -236,7 +241,6 @@ export default function Navbar({ cartCount = 0 }: { cartCount?: number }) {
             )}
 
             {/* SHOPPING BAG */}
-
             <Link
               href="/cart"
               aria-label={`Bag, ${cartCount} items`}
@@ -305,7 +309,7 @@ function MobileDrawer({
           transition={{ duration: 0.3 }}
           className="fixed inset-0 z-60 flex flex-col bg-(--color-ink)"
         >
-          {/*  DRAWER HEADER */}
+          {/* DRAWER HEADER */}
           <div className="container-stridex flex h-16 items-center justify-between md:h-20">
             <span className="font-sans text-lg font-bold tracking-[0.2em] text-(--color-ivory)">
               STRIDEX
@@ -366,26 +370,21 @@ function MobileDrawer({
             ))}
           </motion.nav>
 
-          {/*ACCOUNT SECTION */}
-          <div className="container-stridex flex items-center gap-6 border-t border-[rgb(255_255_255/0.12)] py-6">
+          {/* ACCOUNT SECTION */}
+          <div className="container-stridex flex flex-wrap items-center gap-x-6 gap-y-3 border-t border-[rgb(255_255_255/0.12)] py-6">
             {isLoadingUser ? (
-              <span className="eyebrow text-(--color-stone)">Loading...</span>
+              <span className="eyebrow text-(--color-ivory)/60">
+                Loading...
+              </span>
             ) : user ? (
               <>
                 {/* ACCOUNT */}
-                <Link
-                  href="/account"
-                  onClick={onClose}
-                  className="eyebrow text-(--color-stone) transition-colors duration-300 hover:text-(--color-champagne)"
-                >
+                <Link href="/account" onClick={onClose} className={DRAWER_LINK}>
                   Account
                 </Link>
 
-                <Link
-                  href="/orders"
-                  onClick={onClose}
-                  className="eyebrow text-(--color-stone) transition-colors duration-300 hover:text-(--color-champagne)"
-                >
+                {/* MY ORDERS */}
+                <Link href="/orders" onClick={onClose} className={DRAWER_LINK}>
                   My Orders
                 </Link>
 
@@ -393,7 +392,7 @@ function MobileDrawer({
                 <button
                   type="button"
                   onClick={onLogout}
-                  className="flex items-center gap-2 eyebrow text-(--color-stone) transition-colors duration-300 hover:text-(--color-champagne)"
+                  className={`flex items-center gap-2 ${DRAWER_LINK}`}
                 >
                   <LogOut size={15} strokeWidth={1.5} />
                   Logout
@@ -402,11 +401,7 @@ function MobileDrawer({
             ) : (
               <>
                 {/* LOGIN */}
-                <Link
-                  href="/login"
-                  onClick={onClose}
-                  className="eyebrow text-(--color-stone) transition-colors duration-300 hover:text-(--color-champagne)"
-                >
+                <Link href="/login" onClick={onClose} className={DRAWER_LINK}>
                   Login
                 </Link>
 
@@ -414,7 +409,7 @@ function MobileDrawer({
                 <Link
                   href="/register"
                   onClick={onClose}
-                  className="eyebrow text-(--color-stone) transition-colors duration-300 hover:text-(--color-champagne)"
+                  className={DRAWER_LINK}
                 >
                   Register
                 </Link>
@@ -422,11 +417,7 @@ function MobileDrawer({
             )}
 
             {/* WISHLIST */}
-            <Link
-              href="/wishlist"
-              onClick={onClose}
-              className="eyebrow text-(--color-stone) transition-colors duration-300 hover:text-(--color-champagne)"
-            >
+            <Link href="/wishlist" onClick={onClose} className={DRAWER_LINK}>
               Wishlist
             </Link>
           </div>

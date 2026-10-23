@@ -4,6 +4,48 @@ import Product from "@/models/Product";
 import { updateProductSchema } from "@/validations/product";
 import { getAuthUser } from "@/lib/auth";
 
+function handleProductError(error: unknown) {
+  console.error(error);
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: number }).code === 11000
+  ) {
+    return NextResponse.json(
+      { success: false, message: "Product with this slug already exists" },
+      { status: 409 },
+    );
+  }
+
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: string }).name === "ValidationError" &&
+    "errors" in error
+  ) {
+    const errs = (error as { errors: Record<string, { message: string }> }).errors;
+    const fieldErrors: Record<string, string> = {};
+    for (const key of Object.keys(errs)) {
+      fieldErrors[key] = errs[key].message;
+    }
+    return NextResponse.json(
+      { success: false, message: "Validation failed", errors: fieldErrors },
+      { status: 400 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      message: error instanceof Error ? error.message : "Internal Server Error",
+    },
+    { status: 500 },
+  );
+}
+
 //Get one product
 export const GET = async (
   req: NextRequest,
@@ -54,7 +96,13 @@ export const PUT = async (
 
     const { slug } = await params;
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, message: "Invalid request body" },
+        { status: 400 },
+      );
+    }
 
     const result = updateProductSchema.safeParse(body);
 
@@ -62,6 +110,7 @@ export const PUT = async (
       return NextResponse.json(
         {
           success: false,
+          message: "Validation failed",
           errors: result.error.issues,
         },
         { status: 400 },
@@ -71,13 +120,13 @@ export const PUT = async (
     await connectDB();
 
     const product = await Product.findOneAndUpdate(
-  { slug },
-  result.data,
-  {
-    new: true,
-    runValidators: true,
-  },
-);
+      { slug },
+      result.data,
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     if (!product) {
       return NextResponse.json(
@@ -98,15 +147,7 @@ export const PUT = async (
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal Server Error",
-      },
-      { status: 500 },
-    );
+    return handleProductError(error);
   }
 };
 
@@ -157,14 +198,6 @@ export const DELETE = async (
       { status: 200 },
     );
   } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal Server Error",
-      },
-      { status: 500 },
-    );
+    return handleProductError(error);
   }
 };

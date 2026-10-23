@@ -6,8 +6,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Navbar from "@/component/layout/Navbar";
-import { count } from "console";
 import Footer from "@/component/layout/Footer";
+import SimilarProducts from "@/component/products/SimilarProducts";
 
 interface Product {
   _id:string;
@@ -390,6 +390,7 @@ export default function ProductPage({ params }: ProductPageProps) {
           </div>
         </div>
       </section>
+       <SimilarProducts slug={product.slug} />
     </main>
     <Footer/>
     </>

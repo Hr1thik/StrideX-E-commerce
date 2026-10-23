@@ -74,7 +74,7 @@ const productSchema = new Schema<IProduct>(
       validate: {
         validator: function (this: IProduct, value: number | undefined) {
           if (value == null) return true;
-          if (this.price == null) return true; // update-context guard: this.price may be unresolved here — Zod already validated the relationship at the API layer
+          if (this.price == null || this.price <= 0) return true; // update-context / zero-price guard
           return value < this.price;
         },
         message: "Discount price must be less than regular price",

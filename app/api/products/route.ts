@@ -4,6 +4,49 @@ import { createProductSchema } from "@/validations/product";
 import { connectDB } from "@/lib/mongodb";
 import { getAuthUser } from "@/lib/auth";
 
+function handleProductError(error: unknown) {
+  console.error(error);
+
+  // Duplicate slug (unique index violation)
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: number }).code === 11000
+  ) {
+    return NextResponse.json(
+      { success: false, message: "Product with this slug already exists" },
+      { status: 409 },
+    );
+  }
+
+  // Mongoose validation error -> 400 with field-level details
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: string }).name === "ValidationError" &&
+    "errors" in error
+  ) {
+    const errs = (error as { errors: Record<string, { message: string }> }).errors;
+    const fieldErrors: Record<string, string> = {};
+    for (const key of Object.keys(errs)) {
+      fieldErrors[key] = errs[key].message;
+    }
+    return NextResponse.json(
+      { success: false, message: "Validation failed", errors: fieldErrors },
+      { status: 400 },
+    );
+  }
+
+  return NextResponse.json(
+    {
+      success: false,
+      message: error instanceof Error ? error.message : "Internal Server Error",
+    },
+    { status: 500 },
+  );
+}
 
 export const POST = async (req: NextRequest) => {
   try {
@@ -15,7 +58,13 @@ export const POST = async (req: NextRequest) => {
       );
     }
 
-    const body = await req.json();
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      return NextResponse.json(
+        { success: false, message: "Invalid request body" },
+        { status: 400 },
+      );
+    }
 
     const result = createProductSchema.safeParse(body);
 
@@ -23,6 +72,7 @@ export const POST = async (req: NextRequest) => {
       return NextResponse.json(
         {
           success: false,
+          message: "Validation failed",
           errors: result.error.issues,
         },
         { status: 400 },
@@ -54,15 +104,7 @@ export const POST = async (req: NextRequest) => {
       { status: 201 },
     );
   } catch (error) {
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        success: false,
-        message: "Internal Server Error",
-      },
-      { status: 500 },
-    );
+    return handleProductError(error);
   }
 };
 
@@ -75,8 +117,8 @@ export const GET = async (req: NextRequest) => {
     const category = searchParams.get("category");
     const gender = searchParams.get("gender");
     const size = searchParams.get("size");
-    const sort = searchParams.get("sort"); 
-    const search = searchParams.get("search")
+    const sort = searchParams.get("sort");
+    const search = searchParams.get("search");
     const limit = parseInt(searchParams.get("limit") || "0", 10);
 
     const query: Record<string, unknown> = { isActive: true };
@@ -84,7 +126,7 @@ export const GET = async (req: NextRequest) => {
     if (category) query.category = category.toLowerCase();
     if (gender) query.gender = gender;
     if (size) query.sizes = size;
-   if (search) {
+    if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
         { brand: { $regex: search, $options: "i" } },
@@ -92,7 +134,7 @@ export const GET = async (req: NextRequest) => {
       ];
     }
 
-    let sortOption: Record<string, 1 | -1> = { createdAt: -1 }; // default: newest
+    let sortOption: Record<string, 1 | -1> = { createdAt: -1 };
     if (sort === "price_asc") sortOption = { price: 1 };
     if (sort === "price_desc") sortOption = { price: -1 };
     if (sort === "newest") sortOption = { createdAt: -1 };
@@ -112,7 +154,6 @@ export const GET = async (req: NextRequest) => {
     );
   } catch (error) {
     console.error(error);
-
     return NextResponse.json(
       { success: false, message: "Internal Server Error" },
       { status: 500 },
