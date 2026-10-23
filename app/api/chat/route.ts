@@ -474,9 +474,9 @@ function parseMessages(body: unknown): ChatMessage[] | null {
 export async function POST(req: Request) {
   try {
     if (!process.env.GEMINI_API_KEY) {
-      console.error("[chat] GEMINI_API_KEY is missing");
+      console.error("[chat] GEMINI_API_KEY is missing - add it in Vercel env vars");
       return NextResponse.json(
-        { success: false, message: "Chat service is not configured" },
+        { success: false, message: "Chat is temporarily unavailable. Please try again later." },
         { status: 503 }
       );
     }
