@@ -43,3 +43,6 @@ next-env.d.ts
 
 # vercel
 .vercel
+
+zap_report.html
+zap.yaml
